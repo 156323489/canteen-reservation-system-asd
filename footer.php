@@ -1,21 +1,5 @@
   
-  <?php include '../sweetalert_messages.php'; ?>
-  <!-- /.content-wrapper -->
-  <div class="modal fade" id="approve" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered p-3">
-      <div class="modal-content">
-         <div class="modal-header bg-light">
-            <img src="../assets/images/ctu-logo copy.jpg" alt="" class="d-block m-auto img-circle img-fluid shadow-sm" width="100">
-        </div>
-        <div class="modal-body p-5">
-            <h6 class="text-center">Your session has timed out. Please login again</h6>
-        </div>
-        <div class="modal-footer alert-light">
-          <a href="../logout.php" type="button" class="btn btn-secondary">Close</a>
-        </div>
-      </div>
-    </div>
-  </div>
+  <?php include 'sweetalert_messages.php'; ?>
 
  <!--  <footer class="main-footer">
     <div class="row p-3">
@@ -42,55 +26,14 @@
   </footer> -->
   
   <!-- jQuery -->
-  <script src="../assets/plugins/jquery/jquery.min.js"></script>
+  <script src="assets/plugins/jquery/jquery.min.js"></script>
   <!-- Bootstrap 4 -->
-  <script src="../assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
   <!-- AdminLTE App -->
-  <script src="../assets/dist/js/adminlte.min.js"></script>
-  <!-- DataTables  & Plugins -->
-  <script src="../assets/plugins/datatables/jquery.dataTables.min.js"></script>
-  <script src="../assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
-  <script src="../assets/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
-  <script src="../assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
-  <script src="../assets/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
-  <script src="../assets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
-  <script src="../assets/plugins/pdfmake/pdfmake.min.js"></script>
-  <script src="../assets/plugins/pdfmake/vfs_fonts.js"></script>
-  <script src="../assets/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
-  <script src="../assets/plugins/datatables-buttons/js/buttons.print.min.js"></script>
-  <script src="../assets/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
-  <!-- Select2 -->
-  <script src="../assets/plugins/select2/js/select2.full.min.js"></script>
-  <!-- Page specific script -->
+  <script src="assets/dist/js/adminlte.min.js"></script>
+
 
   <script>
-    $(function () {
-    //Initialize Select2 Elements
-    $('.select2').select2()
-
-    //Initialize Select2 Elements
-    $('.select2bs4').select2({
-      theme: 'bootstrap4'
-    })
-
-    
-    $("#example1").DataTable({
-      "responsive": true, "lengthChange": false, "autoWidth": false,
-      // "buttons": ["csv", "pdf", "print"]
-      // "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
-    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
-    $('#example2').DataTable({
-      "paging": true,
-      "lengthChange": false,
-      "searching": false,
-      "ordering": true,
-      "info": true,
-      "autoWidth": false,
-      "responsive": true,
-    });
-  });
-
-    
   	 // HIDE/SHOW PASSWORD
     function myFunction() {
       var x = document.getElementById("password");
@@ -104,39 +47,17 @@
 
     // SHOW/HIDE PASSWORDS
     function showPassword() {
-      var x = document.getElementById("Old password");
-      var y = document.getElementById("password");
-      var z = document.getElementById("cpassword");
+      var x = document.getElementById("mynewpassword");
+      var y = document.getElementById("cpassword");
       if (x.type === "password" || y.type === "password") {
         x.type = "text";
         y.type = "text";
-        z.type = "text";
       } else {
         x.type = "password";
         y.type = "password";
-        z.type = "password";
       }
    }
 
-
-    // AUTO LOGOUT AFTER 10 MINS
-    setInterval(function() {
-      var lastActive = <?php echo $_SESSION['last_active']; ?>;
-      var currentTime = new Date().getTime() / 1000;
-      var inactiveTime = currentTime - lastActive;
-      if (inactiveTime > 600) { // inactivity period is 10 seconds
-          
-          $('#approve').modal({
-            backdrop: 'static',
-            keyboard: false
-          }).modal('show');
-
-          setTimeout(function() {
-            window.location.href = '../logout.php';
-          }, 15000); 
-
-      }
-    }, 1000); // check every second
 
     // IMAGE PREVIEW
     function getImagePreview(event) {
@@ -168,6 +89,7 @@
     function validation() {
       var email = document.getElementById("email").value;
       var pattern = /.+@(gmail\.com|ctu\.edu\.ph)$/;
+
       // var pattern =/.+@(gmail)\.com$/;
       // var pattern =/.+@(gmail|yahoo)\.com$/;
       var form = document.getElementById("form");
@@ -269,51 +191,7 @@
 
   </script>
 
-<script>
 
-  function logout() {
-    swal({
-      title: 'Are you sure you want to logout?',
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      buttons: true,
-    })
-    .then((willDelete) => {
-      if (willDelete) {
-        // Make an AJAX request to the PHP file
-        $.ajax({
-          url: '../includes/ajax_autoLogout.php',
-          type: 'POST',
-          data: { 
-            id: '<?php echo $id; ?>', 
-            login_time: '<?php echo $login_time; ?>',
-          },
-          success: function(response) {
-            // Handle the response if needed
-            // swal("Logged out successfully!", {
-            //   icon: "success",
-            // }).then(() => {
-              // Redirect to another page
-              window.location = "../logout.php";
-            // });
-          },
-          error: function(xhr, status, error) {
-            // Handle the error if needed
-            swal("Error occurred while logging out!", {
-              icon: "error",
-            });
-          }
-        });
-      } else {
-        // Handle the cancellation if needed
-        swal("Logout canceled.", {
-          icon: "info",
-        });
-      }
-    });
-  }
-
-</script>
   </div>
 </body>
 </html>
