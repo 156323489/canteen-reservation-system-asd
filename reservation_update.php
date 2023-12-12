@@ -1,31 +1,80 @@
-<!-- DELETE -->
-<div class="modal fade" id="update<?php echo $row['reserve_Id']; ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-light">
-        <h5 class="modal-title" id="exampleModalLabel"><i class="fas fa-cart-plus fa-lg"></i> Update Reservation</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-        <span aria-hidden="true"><i class="fa-solid fa-circle-xmark"></i></span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <form action="../forms/reservation_update.php" method="POST">
-          <input type="hidden" class="form-control" value="<?php echo $row['reserve_Id']; ?>" name="reserve_Id">
-          <div class="form-group">
-            <label for="Status">Status</label>
-            <select name="status" id="" class="form-control" required>
-              <option value="0" <?php if($row['status'] == 0) { echo 'selected'; } ?> >Pending</option>
-              <option value="1" <?php if($row['status'] == 1) { echo 'selected'; } ?> >Approved</option>
-              <option value="2" <?php if($row['status'] == 2) { echo 'selected'; } ?> >Delivered</option>
-              <option value="3" <?php if($row['status'] == 3) { echo 'selected'; } ?> >Unavailable</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer alert-light">
-          <button type="button" class="btn bg-secondary" data-dismiss="modal"><i class="fa-solid fa-ban"></i> Cancel</button>
-          <button type="submit" class="btn bg-primary" name="update_status_reservation"><i class="fa-solid fa-floppy-disk"></i> Submit</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+<?php 
+require '../includes/config.php';
+require '../classes/reservation.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+require '../vendor/PHPMailer/src/Exception.php';
+require '../vendor/PHPMailer/src/PHPMailer.php';
+require '../vendor/PHPMailer/src/SMTP.php';
+
+$reserve = new Reservation();
+
+// DELETE CATEGORY - CATEGORY_UPDATE_DELETE.PHP
+if (isset($_POST['update_status_reservation'])) {
+    $reserve_Id = $_POST['reserve_Id'];
+    $status     = $_POST['status'];
+    $result     = $reserve->update_status_reservation($reserve_Id, $status);
+	// var_dump($result);
+    if($result) {
+        if($status == 1) {
+            // FETCH THE CUSTOMER'S ACCOUNT
+            $customer = $reserve->get_reservation($reserve_Id);
+            $email = $customer['email'];
+            $name  = $customer['firstname'].' '.$customer['lastname'];
+
+            $subject = 'Approved Reservation';
+            $message = '<p>Good day sir/maam '.$name.'!, </br>This is to inform you that your food reservation has been <b>approved</b>. Thank you!</p>
+            <p><b>NOTE:</b> This is a system generated email. Please do not reply.</p> ';
+
+            $mail = new PHPMailer(true);
+            try {
+                // Server settings
+                $mail->isSMTP();
+                $mail->Host = 'smtp.gmail.com';
+                $mail->SMTPAuth = true;
+                $mail->Username = 'nmempcoop@gmail.com';
+                $mail->Password = 'dmdgkgbaqccwhtji';
+                $mail->SMTPOptions = array(
+                    'ssl' => array(
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                        'allow_self_signed' => true
+                    )
+                );
+                $mail->SMTPSecure = 'ssl';
+                $mail->Port = 465;
+
+                // Send Email
+                $mail->setFrom('nmempcoop@gmail.com');
+
+                // Recipients
+                $mail->addAddress($email);
+                $mail->addReplyTo('nmempcoop@gmail.com');
+
+                // Content
+                $mail->isHTML(true);
+                $mail->Subject = $subject;
+                $mail->Body = $message;
+
+                $mail->send();
+
+                displayUpdateMessage($mail, "Record has been updated.", '../Admin/reservation.php');
+               
+            } catch (Exception $e) {
+                echo"<script>alert('Membership status has been approved but Mailer Error: ".$mail->ErrorInfo." ')</script>";
+                echo"<script>window.location='../Admin/reservation.php'</script>";
+            } 
+        } else {
+            displayUpdateMessage($result, "Record has been updated.", '../Admin/reservation.php');
+        }
+        
+    } else {
+        displayErrorMessage("Something went wrong while updating the information.", '../Admin/reservation.php'); 
+    }
+}
+
+
+
+
+?>
