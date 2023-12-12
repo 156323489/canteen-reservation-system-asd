@@ -1,120 +1,96 @@
-<title>Web-based School Canteen Reservation Management System | Category records</title>
 <?php 
-    require_once 'sidebar.php'; 
-    require '../classes/category.php';
+	
+	class Category {
+	    private $db;
+	    
+	    public function __construct() {
+	        $this->db = new Database();
+	    }
+
+	    // SAVE CATEGORY
+	    public function create_category($catName, $description) {
+	        $conn = $this->db->getConnection();
+	        $stmt = $conn->prepare("INSERT INTO category (catName, description, date_added) VALUES (?, ?, NOW())");
+	        if (!$stmt) {
+			    die('Error in SQL query: ' . $conn->error);
+			} 
+	        $stmt->bind_param("ss", $catName, $description);
+	        return $stmt->execute();
+	    }
+
+	    // CHECK CATEGORY
+	    public function check_category_exists($catName) {
+	        $conn = $this->db->getConnection();
+	        $stmt = $conn->prepare("SELECT * FROM category WHERE catName = ?");
+	        if (!$stmt) {
+	            die('Error in SQL query: ' . $conn->error);
+	        }
+	        $stmt->bind_param("s", $catName);
+	        $stmt->execute();
+	        $result = $stmt->get_result();
+	        
+	        return $result->num_rows > 0;
+	    }
+
+	    // CHECK CATEGORY FOR UPDATION
+	    public function update_check_category_exists($cat_Id, $catName) {
+	        $conn = $this->db->getConnection();
+	        $stmt = $conn->prepare("SELECT * FROM category WHERE catName = ? AND cat_Id != ?");
+	        if (!$stmt) {
+	            die('Error in SQL query: ' . $conn->error);
+	        }
+	        $stmt->bind_param("si", $catName, $cat_Id);
+	        $stmt->execute();
+	        $result = $stmt->get_result();
+	        
+	        return $result->num_rows > 0;
+	    }
+
+	    // DISPLAY CATEGORY
+	    public function display_category() {
+	        $conn = $this->db->getConnection();
+	        $result = $conn->query("SELECT * FROM category ORDER BY catName");
+        	// return $result->fetch_all(MYSQLI_ASSOC);
+        	return $result;
+	    }
+
+	    // GET CATEGORY
+	    public function get_category($cat_Id) {
+	        $conn = $this->db->getConnection();
+	        $cat_Id = mysqli_real_escape_string($conn, $cat_Id);
+	        $result = $conn->query("SELECT * FROM category WHERE cat_Id = '$cat_Id'");
+	        if ($result && $result->num_rows === 1) {
+	            return $result->fetch_assoc();
+	        }
+	        return null; 
+	    }
+
+	    // UPDATE CATEGORY
+	    public function update_category($cat_Id, $catName, $description) {
+	        $conn = $this->db->getConnection();
+	        $stmt = $conn->prepare("UPDATE category SET catName = ?, description = ? WHERE cat_Id = ?");
+	        $stmt->bind_param("ssi", $catName, $description, $cat_Id);
+	        return $stmt->execute();
+	    }
+
+	    // DELETE CATEGORY
+	    public function delete_category($cat_Id) {
+	        $conn = $this->db->getConnection();
+	        $stmt = $conn->prepare("DELETE FROM category WHERE cat_Id = ?");
+	        $stmt->bind_param("i", $cat_Id);
+	        return $stmt->execute();
+	    }
+
+	    // COUNT CATEGORY
+	    public function count_category() {
+		    $conn = $this->db->getConnection();
+		    $query = "SELECT * FROM category";
+		    $result = $conn->query($query);
+		    // Count the number of records
+		    $count = $result->num_rows;
+		    return $count;
+		}
+
+	}
+
 ?>
-  <div class="content-wrapper">
-    <div class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1 class="m-0">Category</h1>
-          </div>
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="dashboard.php">Home</a></li>
-              <li class="breadcrumb-item active">Category records</li>
-            </ol>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <section class="content">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-lg-4 col-md-4 col-sm-12 col-12">
-            <div class="card card-primary card-outline">
-              <?php 
-                if(isset($_GET['cat_Id'])) {
-                  $cat_Id = $_GET['cat_Id'];
-                  $cat = new Category();
-                  $row = $cat->get_category($cat_Id);
-              ?>
-                <form action="../forms/category_update.php" method="POST">
-                  <input type="hidden" class="form-control" name="cat_Id" required value="<?= $cat_Id; ?>">
-                  <div class="card-header">
-                    <h5>Update Category</h5>
-                  </div>
-                  <div class="card-body">
-                    <div class="form-group">
-                      <label for="Category name">Category name</label>
-                      <input type="text" class="form-control" placeholder="Enter category name" name="catName" required value="<?= $row['catName']; ?>">
-                    </div>
-                    <div class="form-group">
-                      <label for="Description">Description</label>
-                      <textarea name="description" class="form-control" placeholder="Enter Description" id="" cols="30" rows="3" required><?= $row['description']; ?></textarea>
-                    </div>
-                  </div>
-                  <div class="card-footer">
-                    <button type="submit" class="btn btn-primary btn-block" name="update_category">Submit</button>
-                  </div>
-                </form>
-              <?php
-                } else {
-              ?>
-                <form action="../forms/category_create.php" method="POST">
-                  <div class="card-header">
-                    <h5>Add Category</h5>
-                  </div>
-                  <div class="card-body">
-                    <div class="form-group">
-                      <label for="Category name">Category name</label>
-                      <input type="text" class="form-control" placeholder="Enter category name" name="catName" required>
-                    </div>
-                    <div class="form-group">
-                      <label for="Description">Description</label>
-                      <textarea name="description" class="form-control" placeholder="Enter Description" id="" cols="30" rows="3" required></textarea>
-                    </div>
-                  </div>
-                  <div class="card-footer">
-                    <button type="submit" class="btn btn-primary btn-block" name="save_category">Submit</button>
-                  </div>
-                </form>
-              <?php
-                }
-              ?>
-            </div>
-          </div>
-          <div class="col-lg-8 col-md-8 col-sm-12 col-12">
-            <div class="card card-primary card-outline">
-              <div class="card-header">
-                <h5>Category records</h5>
-              </div>
-              <div class="card-body">
-                <table id="example1" class="table table-bordered table-hover text-sm">
-                  <thead>
-                    <tr>
-                      <th>CATEGORY NAME</th>
-                      <th>DESCRIPTION</th>
-                      <th>DATE ADDED</th>
-                      <th>TOOLS</th>
-                    </tr>
-                  </thead>
-                  <tbody id="users_data">
-                    <?php
-                      $cat = new Category();
-                      $category = $cat->display_category();
-                      foreach ($category as $row) {
-                    ?>
-                    <tr>
-                      <td><?= $row['catName'] ?></td>
-                      <td><?= $row['description'] ?></td>
-                      <td class="text-primary"><?php echo $row['date_added']; ?></td>
-                      <td>
-                        <a class="btn btn-info btn-sm" href="category.php?cat_Id=<?php echo $row['cat_Id']; ?>"><i class="fas fa-pencil-alt"></i> Edit</a>
-                        <button type="button" class="btn bg-danger btn-sm" data-toggle="modal" data-target="#delete<?php echo $row['cat_Id']; ?>"><i class="fas fa-trash"></i> Delete</button>
-                      </td>
-                    </tr>
-                    <?php include 'category_delete.php'; }  ?>
-                  </tbody>
-                </table>
-                
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-<?php require_once '../includes/footer.php'; ?>
