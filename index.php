@@ -20,16 +20,7 @@
       <div class="container">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <?php 
-              if(isset($_GET['cat_Id'])) {
-                $cat_Id = $_GET['cat_Id'];
-                $prod = new Product();
-                $product = $prod->get_product_by_category($cat_Id);
-                if($product->num_rows > 0) {
-                 $row=$product->fetch_assoc();
-            ?>
-            <h1 class="m-0"><?= ucwords($row['catName']) ?> Products</h1>
-            <?php } } ?>
+            <h1 class="m-0"> All Food Products</h1>
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -44,12 +35,6 @@
     <!-- Main content -->
     <div class="content">
       <div class="container">
-
-        <?php 
-          if(isset($_GET['cat_Id'])) {
-            $cat_Id = $_GET['cat_Id'];
-        ?>
-
         <div class="row d-flex justify-content-start">
           <?php 
             if(isset($_POST['search_button'])) {
@@ -105,7 +90,7 @@
           else { 
          
             $prod = new Product();
-            $product = $prod->get_product_by_category($cat_Id);
+            $product = $prod->display_product();
             if($product->num_rows > 0) {
               while($row=$product->fetch_assoc()) {
           ?>
@@ -155,11 +140,8 @@
           <?php } } //END SEARCH  ?>
 
         </div>
-
-        <?php } else { require_once '404.php'; } ?>
-
       </div>
     </div>
   </div>
   
-<?php include 'footer.php'; ?>
+<?php require_once 'footer.php'; ?>
